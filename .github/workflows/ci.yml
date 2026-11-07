@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: jobscout
+          POSTGRES_PASSWORD: jobscout
+          POSTGRES_DB: jobscout_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jobscout" --health-interval 3s --health-retries 20
+    env:
+      JOBSCOUT_TEST_DATABASE_URL: postgresql+asyncpg://jobscout:jobscout@localhost:5432/jobscout_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv venv -p 3.12 .venv && uv pip install -p .venv -e '.[dev,llm]'
+      - run: make lint
+      - run: make typecheck
+      - run: make test
+      - run: make test-int
+      - name: Extraction eval (rule baseline)
+        run: .venv/bin/python -m jobscout.cli eval extraction --extractor rules --min-accuracy 0.8
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t jobscout:ci .

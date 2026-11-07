@@ -1,0 +1,84 @@
+# Job Scout source configuration.
+#
+# `sources:`   one entry per feed; `kind` selects the client, the rest are its options.
+# `companies:` employer ATS boards (direct links, no aggregator). One company may list several
+#              ATS slugs. A wrong or renamed slug shows up as an ERROR row in `crawl_runs`;
+#              check a single board with:  jobscout ingest -s greenhouse:<slug> --storage memory
+#
+# Set `enabled: false` to keep an entry without crawling it.
+
+sources:
+  # ---------------- Kazakhstan (scope: local) ----------------
+  - { kind: hh, text: "python", area: 40, max_pages: 5, max_details: 60 }
+  - { kind: hh, text: "machine learning OR data scientist OR ML engineer", area: 40 }
+  - { kind: hh, text: "backend OR golang OR java developer", area: 40 }
+  - { kind: hh, text: "devops OR SRE OR platform engineer", area: 40 }
+  - { kind: hh, text: "team lead OR тимлид OR руководитель разработки", area: 40 }
+
+  # Public Telegram channels (read via https://t.me/s/<channel>, no bot token needed).
+  # Only public channels work; private invite links (t.me/+...) and personal accounts do not.
+  - { kind: telegram, channel: itvacancykz, max_pages: 3 }
+  - { kind: telegram, channel: overzeros, max_pages: 3 }
+  # If this username is a person rather than a channel, the preview is empty and it yields 0.
+  - { kind: telegram, channel: nariman_ovv, max_pages: 3 }
+  # Looks like a moderator account, not the channel; replace with the channel username.
+  - { kind: telegram, channel: JobKZ_moderator, enabled: false }
+  # Private invite links (t.me/+0zv_MNh22Xw3NTMy) need an MTProto user session (Telethon)
+  # that has joined the channel - planned source kind `telegram_private`, session in .env.
+
+  # Small boards without an API. Selectors must be checked against the live page before
+  # enabling; run `jobscout ingest -s html:dsml --storage memory -v` after editing.
+  - kind: html
+    name: dsml
+    enabled: false
+    url: "https://dsml.kz/jobs"
+    country: KZ
+    item: "article, .job, .vacancy"
+    title: "h2, h3, .title"
+    link: "a[href]"
+    company: ".company"
+    location: ".location"
+    date: "time"
+
+  # ---------------- Global (scope: global) ----------------
+  # Remote boards. Remotive asks for at most a few requests per day and a link back.
+  - { kind: remotive, category: software-dev }
+  - { kind: remotive, category: data }
+  - { kind: remoteok }
+  - { kind: himalayas, max_pages: 10 }
+  - { kind: arbeitnow, max_pages: 5 }
+  - { kind: hn }
+
+  # LinkedIn through an Apify actor (pay-per-use). Active only when JOBSCOUT_APIFY_TOKEN is
+  # set. `input` is passed verbatim to the actor; check the actor's input schema on Apify.
+  - kind: linkedin
+    input: { keywords: "AI Engineer", location: "Worldwide", rows: 100 }
+  - kind: linkedin
+    input: { keywords: "Backend Engineer relocation", location: "European Union", rows: 100 }
+  - kind: linkedin
+    input: { keywords: "Software Engineer English", location: "Japan", rows: 100 }
+
+companies:
+  # AI labs & infra
+  - { name: Anthropic, greenhouse: anthropic }
+  - { name: OpenAI, ashby: openai }
+  - { name: Databricks, greenhouse: databricks }
+  - { name: Palantir, lever: palantir }
+  - { name: Mistral AI, lever: mistral }
+  - { name: Cohere, ashby: cohere }
+  - { name: Perplexity, ashby: perplexity }
+  # Fintech / product companies that hire internationally
+  - { name: Stripe, greenhouse: stripe }
+  - { name: Coinbase, greenhouse: coinbase }
+  - { name: Ramp, ashby: ramp }
+  - { name: Linear, ashby: linear }
+  - { name: Cloudflare, greenhouse: cloudflare }
+  - { name: Datadog, greenhouse: datadog }
+  - { name: GitLab, greenhouse: gitlab }
+  - { name: MongoDB, greenhouse: mongodb }
+  - { name: Figma, greenhouse: figma }
+  - { name: Airbnb, greenhouse: airbnb }
+  - { name: Discord, greenhouse: discord }
+  - { name: Dropbox, greenhouse: dropbox }
+  # Japan (English-friendly)
+  - { name: Woven by Toyota, greenhouse: wovenbytoyota }

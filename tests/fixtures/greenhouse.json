@@ -1,0 +1,10 @@
+{"jobs": [
+  {"id": 4012345, "title": "Senior Software Engineer, LLM Infrastructure ", "absolute_url": "https://boards.greenhouse.io/acme/jobs/4012345",
+   "location": {"name": "Remote - EMEA"}, "updated_at": "2026-10-30T12:00:00-04:00", "first_published": "2026-10-20T09:00:00-04:00",
+   "company_name": "Acme AI",
+   "content": "&lt;p&gt;We build &lt;strong&gt;LLM&lt;/strong&gt; serving infra.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;5+ years of backend experience in Python or Go&lt;/li&gt;&lt;li&gt;Kubernetes, Kafka&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;We can sponsor visas.&lt;/p&gt;",
+   "departments": [{"id": 1, "name": "Engineering"}], "offices": [{"id": 2, "name": "Remote"}]},
+  {"id": 4012346, "title": "Data Analyst", "absolute_url": "https://boards.greenhouse.io/acme/jobs/4012346",
+   "location": {"name": "Riyadh, Saudi Arabia"}, "updated_at": "2026-11-01T08:00:00Z",
+   "content": "&lt;p&gt;This role is open to Saudi nationals only as part of our Saudization commitments.&lt;/p&gt;", "departments": []}
+]}

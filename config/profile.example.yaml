@@ -1,0 +1,36 @@
+# Copy to profiles/<you>.yaml (git-ignored) and edit. Used by `jobscout score --profile`.
+id: alidar
+name: Alidar
+based_in: KZ
+citizenship: [KZ]
+languages: [en, ru, kk]
+
+target_roles:
+  - AI Engineer
+  - ML Engineer
+  - Applied AI Engineer
+  - Forward Deployed Engineer
+  - Backend Engineer
+  - Team Lead
+role_keywords: [ai, llm, ml, machine learning, backend, platform, agents, forward deployed, data]
+
+seniority_min: mid
+seniority_max: lead
+
+core_skills: [python, fastapi, postgresql, redis, docker, llm, rag, sql, machine learning]
+secondary_skills: [celery, mongodb, kubernetes, kafka, pytorch, computer vision, aws, gcp,
+                   langgraph, mcp, go, airflow]
+domains: [fintech, identity, biometric, fraud, ai, developer tools, security]
+
+location:
+  remote_ok: true
+  onsite_countries: [KZ]
+  relocate_to: [JP, AE, SA, QA, DE, NL, PL, GB, IE, SG, CY]
+  needs_visa_sponsorship: true
+
+salary_floor_usd_month: 2500
+salary_target_usd_month: 5000
+
+watchlist: [Anthropic, OpenAI, Databricks, Palantir, Stripe]
+blacklist: []
+fit_threshold: 6.0

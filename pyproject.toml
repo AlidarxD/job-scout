@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jobscout"
+version = "0.1.0"
+description = "Job aggregator and matcher: Kazakhstan boards + global ATS/remote feeds, LLM field extraction, strict 0-10 fit scoring."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Alidar Toleubay" }]
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "httpx>=0.27",
+  "pydantic>=2.8",
+  "pydantic-settings>=2.4",
+  "sqlalchemy[asyncio]>=2.0.32",
+  "asyncpg>=0.29",
+  "alembic>=1.13",
+  "pgvector>=0.3",
+  "typer>=0.12",
+  "pyyaml>=6.0",
+  "selectolax>=1.0",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.40"]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "respx>=0.21",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML",
+]
+
+[project.scripts]
+jobscout = "jobscout.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jobscout"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
+ignore = ["B008", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"evals/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+packages = ["jobscout"]
+
+[[tool.mypy.overrides]]
+module = ["selectolax.*", "pgvector.*", "anthropic.*", "asyncpg.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["integration: needs a running Postgres (JOBSCOUT_TEST_DATABASE_URL)"]

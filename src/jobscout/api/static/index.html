@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Scout</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a65; --line: #e3e1da;
+    --accent: #1f6f5c; --accent-ink: #ffffff; --warn: #9a5b00; --bad: #a33a2b; --chip: #eeece5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151513; --panel: #1d1d1a; --ink: #ecebe6; --muted: #9b9a93; --line: #2f2e2a;
+      --accent: #4fb39a; --accent-ink: #0f1f1b; --warn: #e0a54a; --bad: #e07a6a; --chip: #272723;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0; }
+  main { max-width: 1200px; margin: 0 auto; padding: 8px 16px 40px; }
+  .tabs { display: flex; gap: 4px; margin: 12px 0; }
+  .tab { border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+         padding: 6px 14px; border-radius: 999px; cursor: pointer; font: inherit; }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;
+         background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  input, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                  border-radius: 6px; padding: 6px 8px; width: 100%; }
+  .meta { color: var(--muted); margin: 12px 2px 6px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .list { display: grid; gap: 8px; }
+  .job { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+         display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+  .job a.title { color: var(--ink); font-weight: 600; text-decoration: none; font-size: 15px; }
+  .job a.title:hover { text-decoration: underline; }
+  .company { color: var(--muted); }
+  .right { text-align: right; color: var(--muted); white-space: nowrap; }
+  .salary { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .chip { background: var(--chip); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+  .chip.good { color: var(--accent); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; }
+  .pager { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  button.secondary { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+                     border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button:disabled { opacity: .4; cursor: default; }
+  @media (max-width: 560px) { .job { grid-template-columns: 1fr; } .right { text-align: left; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Job Scout</h1>
+  <p class="sub">Kazakhstan boards and global employer feeds, de-duplicated, with the facts that decide whether you can actually apply.</p>
+</header>
+<main>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-scope="" aria-selected="true">All</button>
+    <button class="tab" role="tab" data-scope="local" aria-selected="false">Kazakhstan</button>
+    <button class="tab" role="tab" data-scope="global" aria-selected="false">Global</button>
+  </div>
+  <form id="filters">
+    <label>Search<input name="q" placeholder="title or company"></label>
+    <label>Open to country<input name="country" placeholder="KZ, DE, JP…" maxlength="2"></label>
+    <label>Work mode
+      <select name="remote"><option value="">Any</option><option value="remote">Remote</option>
+        <option value="hybrid">Hybrid</option><option value="onsite">On-site</option></select></label>
+    <label>Level
+      <select name="seniority"><option value="">Any</option><option>junior</option><option>mid</option>
+        <option>senior</option><option>lead</option><option>principal</option></select></label>
+    <label>Posted within
+      <select name="days"><option value="">Any time</option><option value="3">3 days</option>
+        <option value="7">7 days</option><option value="30">30 days</option></select></label>
+  </form>
+  <div class="meta"><span id="count"></span><span id="sources"></span></div>
+  <div class="list" id="list"></div>
+  <div class="pager"><button class="secondary" id="prev">← Newer</button><button class="secondary" id="next">Older →</button></div>
+</main>
+<script>
+const PAGE = 30;
+const state = { scope: "", offset: 0 };
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = (v) => v == null ? "" : "$" + Math.round(v).toLocaleString("en-US");
+
+function chips(j) {
+  const out = [];
+  if (j.remote !== "unknown") out.push([j.remote + (j.remote_regions.length ? " · " + j.remote_regions.join(", ") : ""), j.remote === "remote" ? "good" : ""]);
+  if (j.seniority !== "unknown") out.push([j.seniority + (j.years_min ? ` · ${j.years_min}+ yrs` : ""), ""]);
+  if (j.visa_sponsorship === true) out.push(["visa sponsorship", "good"]);
+  if (j.visa_sponsorship === false) out.push(["no visa sponsorship", "warn"]);
+  if (j.relocation === true) out.push(["relocation", "good"]);
+  if (j.citizenship_required.length) out.push(["nationals only: " + j.citizenship_required.join(", "), "bad"]);
+  if (j.required_languages.length) out.push(["requires " + j.required_languages.join(", "), "warn"]);
+  j.skills.slice(0, 6).forEach(s => out.push([s, ""]));
+  return out.map(([t, c]) => `<span class="chip ${c}">${esc(t)}</span>`).join("");
+}
+
+function render(jobs) {
+  $("#list").innerHTML = jobs.length ? jobs.map(j => {
+    const [lo, hi] = j.salary_usd_month || [null, null];
+    const salary = lo || hi ? `<div class="salary">${money(lo)}${hi && hi !== lo ? "–" + money(hi) : ""}/mo</div>` : "";
+    const age = j.age_days == null ? "" : j.age_days === 0 ? "today" : `${j.age_days}d ago`;
+    return `<article class="job">
+      <div><a class="title" href="${esc(j.apply_url || j.url)}" target="_blank" rel="noopener">${esc(j.title)}</a>
+        <div class="company">${esc(j.company)}${j.location ? " · " + esc(j.location) : ""}</div></div>
+      <div class="right">${salary}<div>${esc(age)}</div><div>${esc(j.sources.join(", "))}</div></div>
+      <div class="chips">${chips(j)}</div></article>`;
+  }).join("") : `<div class="empty">No vacancies match these filters.</div>`;
+  $("#count").textContent = jobs.length ? `Showing ${state.offset + 1}–${state.offset + jobs.length}` : "";
+  $("#prev").disabled = state.offset === 0;
+  $("#next").disabled = jobs.length < PAGE;
+}
+
+async function load() {
+  const params = new URLSearchParams({ limit: PAGE, offset: state.offset });
+  if (state.scope) params.set("scope", state.scope);
+  for (const [k, v] of new FormData($("#filters"))) if (v) params.set(k, k === "country" ? v.toUpperCase() : v);
+  try {
+    const res = await fetch("/api/jobs?" + params);
+    render(res.ok ? await res.json() : []);
+  } catch { render([]); }
+}
+
+async function loadStats() {
+  try {
+    const s = await (await fetch("/api/stats")).json();
+    $("#sources").textContent = `${s.total_open} open · ${Object.keys(s.by_source).length} sources`;
+  } catch {}
+}
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
+  state.scope = t.dataset.scope; state.offset = 0; load();
+}));
+let timer;
+$("#filters").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.offset = 0; load(); }, 250); });
+$("#prev").addEventListener("click", () => { state.offset = Math.max(0, state.offset - PAGE); load(); });
+$("#next").addEventListener("click", () => { state.offset += PAGE; load(); });
+load(); loadStats();
+</script>
+</body>
+</html>

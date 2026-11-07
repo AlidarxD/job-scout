@@ -1,0 +1,51 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: jobscout
+      POSTGRES_PASSWORD: jobscout
+      POSTGRES_DB: jobscout
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobscout"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    env_file: [.env]
+    environment:
+      JOBSCOUT_DATABASE_URL: postgresql+asyncpg://jobscout:jobscout@db:5432/jobscout
+    depends_on:
+      db: { condition: service_healthy }
+
+  api:
+    build: .
+    env_file: [.env]
+    environment:
+      JOBSCOUT_DATABASE_URL: postgresql+asyncpg://jobscout:jobscout@db:5432/jobscout
+      JOBSCOUT_REDIS_URL: redis://redis:6379/0
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  # One-shot crawl of every configured source. Schedule it with cron / a k8s CronJob:
+  #   docker compose run --rm ingest
+  ingest:
+    build: .
+    command: ["jobscout", "ingest", "--all"]
+    env_file: [.env]
+    environment:
+      JOBSCOUT_DATABASE_URL: postgresql+asyncpg://jobscout:jobscout@db:5432/jobscout
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    profiles: ["jobs"]
+
+volumes:
+  pgdata:

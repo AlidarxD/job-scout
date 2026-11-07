@@ -1,0 +1,5 @@
+{"id": "110000001", "name": "Senior Python Developer (FastAPI)", "area": {"id": "160", "name": "Алматы"},
+ "salary_range": {"from": 1200000, "to": 1800000, "currency": "KZT", "gross": false, "mode": {"id": "MONTH"}},
+ "description": "<p><strong>Требования:</strong></p><ul><li>Python, FastAPI, PostgreSQL, Redis</li><li>Docker, Kubernetes</li></ul>",
+ "key_skills": [{"name": "Python"}, {"name": "FastAPI"}, {"name": "PostgreSQL"}],
+ "experience": {"id": "between3And6"}, "work_format": [{"id": "HYBRID"}], "schedule": {"id": "fullDay"}}

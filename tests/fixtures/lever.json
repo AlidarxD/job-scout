@@ -1,0 +1,10 @@
+[
+  {"id": "a1b2c3d4-0000-1111-2222-333344445555", "text": "Forward Deployed Engineer", "hostedUrl": "https://jobs.lever.co/acme/a1b2c3d4-0000-1111-2222-333344445555",
+   "applyUrl": "https://jobs.lever.co/acme/a1b2c3d4-0000-1111-2222-333344445555/apply",
+   "categories": {"location": "Tokyo, Japan", "team": "Deployment", "commitment": "Full-time"},
+   "createdAt": 1761980400000, "workplaceType": "hybrid", "country": "JP",
+   "descriptionPlain": "Work directly with customers to deploy our platform.",
+   "lists": [{"text": "Requirements", "content": "<li>3+ years shipping production Python</li><li>Business-level Japanese (JLPT N2) required</li>"}],
+   "additionalPlain": "Relocation support and visa sponsorship provided.",
+   "salaryRange": {"min": 9000000, "max": 13000000, "currency": "JPY", "interval": "per-year-salary"}}
+]

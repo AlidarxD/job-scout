@@ -1,0 +1,6 @@
+{"offset": 0, "limit": 100, "totalFound": 1, "content": [
+  {"id": "7440001", "name": "Backend Engineer (Java)", "uuid": "u-1", "refNumber": "R1", "company": {"identifier": "AcmeGroup", "name": "Acme Group"},
+   "releasedDate": "2026-10-28T10:11:12.000Z", "location": {"city": "Warsaw", "region": "Masovia", "country": "pl", "remote": false, "fullLocation": "Warsaw, Masovia, Poland"},
+   "experienceLevel": {"id": "mid_senior_level", "label": "Mid-Senior Level"}, "typeOfEmployment": {"label": "Full-time"},
+   "ref": "https://api.smartrecruiters.com/v1/companies/AcmeGroup/postings/7440001"}
+]}

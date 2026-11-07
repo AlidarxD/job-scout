@@ -1,0 +1,13 @@
+{"items": [
+  {"id": "110000001", "name": "Senior Python Developer (FastAPI)", "area": {"id": "160", "name": "Алматы"},
+   "salary": {"from": 1200000, "to": 1800000, "currency": "KZT", "gross": false},
+   "employer": {"id": "1", "name": "ТОО Kolesa Group"}, "alternate_url": "https://hh.kz/vacancy/110000001",
+   "apply_alternate_url": "https://hh.kz/applicant/vacancy_response?vacancyId=110000001",
+   "published_at": "2026-11-05T10:30:00+0500", "schedule": {"id": "fullDay"}, "work_format": [{"id": "HYBRID"}],
+   "experience": {"id": "between3And6"}, "professional_roles": [{"id": "96", "name": "Программист, разработчик"}],
+   "snippet": {"requirement": "Опыт коммерческой разработки на <highlighttext>Python</highlighttext> от 3 лет.", "responsibility": "Разработка сервисов."}},
+  {"id": "110000002", "name": "Data Scientist", "area": {"id": "159", "name": "Астана"}, "salary": null,
+   "employer": {"name": "Halyk Bank"}, "alternate_url": "https://hh.kz/vacancy/110000002", "published_at": "2026-11-06T09:00:00+0500",
+   "schedule": {"id": "remote"}, "experience": {"id": "between1And3"},
+   "snippet": {"requirement": "Знание казахского языка обязательно. ML, SQL.", "responsibility": null}}
+], "found": 2, "pages": 1, "page": 0, "per_page": 100}

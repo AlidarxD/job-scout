@@ -373,7 +373,7 @@ ROWS = [
 ]
 
 out = Path(__file__).with_name("dataset.jsonl")
-with out.open("w") as fh:
+with out.open("w", encoding="utf-8") as fh:
     for posting, expected in ROWS:
         fh.write(json.dumps({**posting, "expected": expected}, ensure_ascii=False) + "\n")
 print(f"wrote {len(ROWS)} rows to {out}")

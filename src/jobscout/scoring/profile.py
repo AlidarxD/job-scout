@@ -53,7 +53,7 @@ class CandidateProfile(BaseModel):
 
     @classmethod
     def load(cls, path: Path) -> CandidateProfile:
-        return cls.model_validate(yaml.safe_load(path.read_text()))
+        return cls.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
 
     @property
     def all_skills(self) -> set[str]:

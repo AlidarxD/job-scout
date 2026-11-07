@@ -13,7 +13,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def load(name: str) -> Any:
-    text = (FIXTURES / name).read_text()
+    text = (FIXTURES / name).read_text(encoding="utf-8")
     return json.loads(text) if name.endswith(".json") else text
 
 

@@ -66,8 +66,11 @@ def ingest(
     all_: Annotated[bool, typer.Option("--all", help="Run every enabled source")] = False,
     extractor: Annotated[str, typer.Option(help="rules | llm")] = "rules",
     storage: Annotated[str | None, typer.Option(help="postgres | memory")] = None,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose")] = False,
 ) -> None:
     """Fetch postings from sources, de-duplicate, extract facts, store."""
+    if verbose:
+        logging.getLogger().setLevel(logging.INFO)
     from jobscout.pipeline import Ingestor
     from jobscout.sources import load_sources
 
@@ -144,7 +147,7 @@ def score(
         if reasons:
             typer.echo("\nrejected by: " + ", ".join(f"{k}={v}" for k, v in reasons.most_common()))
         if out:
-            with out.open("w", newline="") as fh:
+            with out.open("w", newline="", encoding="utf-8-sig") as fh:
                 w = csv.writer(fh)
                 w.writerow(
                     [
@@ -256,7 +259,8 @@ def eval_extraction(
                     },
                 },
                 indent=2,
-            )
+            ),
+            encoding="utf-8",
         )
     if report.micro_accuracy < min_accuracy:
         typer.echo(f"FAIL: {report.micro_accuracy:.3f} < {min_accuracy}", err=True)

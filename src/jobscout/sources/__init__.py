@@ -53,7 +53,9 @@ def load_sources(settings: Settings, path: Path | None = None) -> list[Source]:
     Format: a list under `sources:`; each entry has `kind`, optional `enabled: false`, and
     kind-specific options. `companies:` entries expand to one ATS source each.
     """
-    config: dict[str, Any] = yaml.safe_load((path or settings.sources_file).read_text()) or {}
+    config: dict[str, Any] = (
+        yaml.safe_load((path or settings.sources_file).read_text(encoding="utf-8")) or {}
+    )
     entries: list[dict[str, Any]] = list(config.get("sources") or [])
     for company in config.get("companies") or []:
         for ats in ("greenhouse", "lever", "ashby", "workable", "smartrecruiters"):

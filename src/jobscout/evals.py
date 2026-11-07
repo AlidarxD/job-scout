@@ -54,7 +54,7 @@ class EvalReport:
 
 def load_dataset(path: Path = DATASET) -> list[tuple[RawPosting, dict[str, Any]]]:
     rows = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
             obj = json.loads(line)
             rows.append((RawPosting.model_validate(obj["posting"]), obj["expected"]))

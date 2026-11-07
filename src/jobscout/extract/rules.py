@@ -198,6 +198,9 @@ _CITIZENSHIP: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 
+_SOFT_REQ = re.compile(r"^\W*(?:are |is )?(?:preferred|a plus|an advantage|encouraged)", re.I)
+
+
 def tri_state(text: str, yes: re.Pattern[str], no: re.Pattern[str]) -> bool | None:
     if no.search(text):
         return False
@@ -404,7 +407,11 @@ class RuleExtractor:
             countries.append(posting.country_hint.upper())
         countries += detect_countries(posting.location_raw)
         remote = remote_policy(posting)
-        citizenship = [code for code, rx in _CITIZENSHIP if rx.search(text)]
+        citizenship = [
+            code
+            for code, rx in _CITIZENSHIP
+            if (m := rx.search(text)) and not _SOFT_REQ.search(text[m.end() : m.end() + 25])
+        ]
         skill_list = list(
             dict.fromkeys([s.lower() for s in hints.get("skills") or []] + skills(text))
         )

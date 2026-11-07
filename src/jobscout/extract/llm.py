@@ -29,12 +29,15 @@ MAX_DESCRIPTION_CHARS = 12_000
 SYSTEM = """You extract hiring facts from a job posting. Be literal and conservative:
 - Only report what the posting states or unambiguously implies. Unknown -> null / [] / "unknown".
 - seniority: the level the role is actually hired at. If the title says Mid but it demands
-  5+ years or owning architecture, answer senior.
+  5+ years or owning architecture, answer senior. Staff / tech lead / team lead -> lead;
+  principal / distinguished / director -> principal.
 - remote_regions: where a remote hire may live. "Remote (US only)" -> ["US"]; "Remote, EMEA"
-  -> ["EMEA"]; "Anywhere" -> ["WORLD"]. Leave [] when not remote or not stated.
+  -> ["EMEA"]; "Anywhere" -> ["WORLD"]. Allowed tokens: ISO2 codes or WORLD, EU, EMEA,
+  AMERICAS, APAC, CIS (North/Latin America -> AMERICAS). [] when not remote or not stated.
 - countries: ISO-3166 alpha-2 codes of office locations.
 - citizenship_required: ISO2 codes when the role is restricted to nationals or needs a
   clearance (Saudization -> SA, Emiratisation -> AE, US security clearance -> US).
+  Only hard requirements: "nationals preferred" is NOT a requirement -> [].
 - required_languages: ISO-639-1 codes of human languages *required* besides English. Ignore
   "nice to have".
 - visa_sponsorship / relocation: true only if offered, false only if explicitly refused.
@@ -67,7 +70,7 @@ class LlmFacts(BaseModel):
             seniority=Seniority[self.seniority.upper()],
             years_min=self.years_min,
             remote=RemotePolicy(self.remote),
-            remote_regions=[r.upper() for r in self.remote_regions],
+            remote_regions=normalize_regions(self.remote_regions),
             countries=[c.upper() for c in self.countries if len(c) == 2],
             visa_sponsorship=self.visa_sponsorship,
             relocation=self.relocation,
@@ -170,6 +173,31 @@ class LlmExtractor:
             log.warning("LLM extraction failed for %s, using rules: %r", posting.url, exc)
             return await self._fallback.extract(posting)
         return apply_hints(facts, posting)
+
+
+_REGION_ALIASES = {
+    "NA": "AMERICAS",
+    "NORTH AMERICA": "AMERICAS",
+    "LATAM": "AMERICAS",
+    "LATIN AMERICA": "AMERICAS",
+    "EUROPE": "EU",
+    "ASIA": "APAC",
+    "GLOBAL": "WORLD",
+    "ANYWHERE": "WORLD",
+    "WORLDWIDE": "WORLD",
+    "UK": "GB",
+}
+_REGION_TOKENS = {"WORLD", "EU", "EMEA", "AMERICAS", "APAC", "CIS"}
+
+
+def normalize_regions(values: list[str]) -> list[str]:
+    """Map model output onto the closed region vocabulary; drop anything unrecognised."""
+    out: list[str] = []
+    for value in values:
+        token = _REGION_ALIASES.get(value.strip().upper(), value.strip().upper())
+        if (token in _REGION_TOKENS or (len(token) == 2 and token.isalpha())) and token not in out:
+            out.append(token)
+    return out
 
 
 def apply_hints(facts: JobFacts, posting: RawPosting) -> JobFacts:

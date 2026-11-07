@@ -316,7 +316,7 @@ ROWS = [
             "Qatari nationals preferred under the Qatarization program.",
             location_raw="Doha, Qatar",
         ),
-        {"countries": ["QA"], "citizenship_required": ["QA"]},
+        {"countries": ["QA"], "citizenship_required": []},
     ),
     (
         P(

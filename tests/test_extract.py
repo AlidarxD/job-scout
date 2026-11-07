@@ -209,3 +209,40 @@ def test_visa_sponsorship_and_relocation_phrase() -> None:
         posting(description="Visa sponsorship and relocation package provided.")
     )
     assert facts.visa_sponsorship is True and facts.relocation is True
+
+
+async def test_hybrid_calls_llm_only_when_rules_are_unsure() -> None:
+    from jobscout.extract.hybrid import HybridExtractor
+
+    client = fake_client(GOOD)
+    ext = HybridExtractor(LlmExtractor(client, "m"))
+    clear = posting(
+        title="Senior Backend Engineer",
+        location_raw="Berlin, Germany",
+        remote_hint=RemotePolicy.ONSITE,
+        description="Python, Kafka.",
+    )
+    facts = await ext.extract(clear)
+    assert client.messages.calls == [] and facts.seniority is Seniority.SENIOR
+
+    vague = posting(
+        title="Engineer",
+        description="Remote. Candidates must be based in a nearby time zone.",
+        remote_hint=RemotePolicy.REMOTE,
+    )
+    facts = await ext.extract(vague)
+    assert len(client.messages.calls) == 1
+    assert facts.seniority is Seniority.SENIOR  # gap filled by LLM
+    assert facts.remote is RemotePolicy.REMOTE  # rule value kept
+    assert ext.routed["seniority"] == 1 and ext.routed["_llm_calls"] == 1
+
+
+def test_llm_region_normalization() -> None:
+    from jobscout.extract.llm import normalize_regions
+
+    assert normalize_regions(["NA", "europe", "us", "Mars"]) == ["AMERICAS", "EU", "US"]
+
+
+def test_nationals_preferred_is_not_a_gate() -> None:
+    facts = rules.extract_sync(posting(description="Qatari nationals preferred."))
+    assert facts.citizenship_required == []

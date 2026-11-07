@@ -35,15 +35,20 @@ def _repo(settings: Settings, storage: str | None = None) -> Repository:
 
 
 def _extractor(settings: Settings, name: str) -> Extractor:
-    if name == "llm":
+    if name in ("llm", "hybrid"):
         if settings.anthropic_api_key is None:
             typer.echo("JOBSCOUT_ANTHROPIC_API_KEY is not set; use --extractor rules", err=True)
             raise typer.Exit(2)
         from jobscout.extract.llm import LlmExtractor
 
-        return LlmExtractor.from_settings(
+        llm = LlmExtractor.from_settings(
             settings.anthropic_api_key.get_secret_value(), settings.llm_model
         )
+        if name == "hybrid":
+            from jobscout.extract.hybrid import HybridExtractor
+
+            return HybridExtractor(llm)
+        return llm
     return RuleExtractor()
 
 
@@ -64,7 +69,7 @@ def ingest(
         ),
     ] = None,
     all_: Annotated[bool, typer.Option("--all", help="Run every enabled source")] = False,
-    extractor: Annotated[str, typer.Option(help="rules | llm")] = "rules",
+    extractor: Annotated[str, typer.Option(help="rules | hybrid | llm")] = "rules",
     storage: Annotated[str | None, typer.Option(help="postgres | memory")] = None,
     verbose: Annotated[bool, typer.Option("-v", "--verbose")] = False,
 ) -> None:
@@ -101,7 +106,14 @@ def ingest(
         typer.echo(
             f"total fetched={report.fetched} new={report.new} closed_stale={report.closed_stale}"
         )
-        usage = getattr(ext, "usage", None)
+        routed = getattr(ext, "routed", None)
+        if routed is not None:
+            calls = routed.get("_llm_calls", 0)
+            typer.echo(
+                f"hybrid: llm used for {calls}/{getattr(ext, 'total', 0)} postings; "
+                + ", ".join(f"{k}={v}" for k, v in routed.most_common() if k[0] != "_")
+            )
+        usage = getattr(getattr(ext, "llm", ext), "usage", None)
         if usage:
             typer.echo(
                 f"llm calls={usage.calls} in_tokens={usage.input_tokens} "
@@ -232,7 +244,7 @@ def sources_list() -> None:
 
 @eval_app.command("extraction")
 def eval_extraction(
-    extractor: Annotated[str, typer.Option(help="rules | llm")] = "rules",
+    extractor: Annotated[str, typer.Option(help="rules | hybrid | llm")] = "rules",
     dataset: Annotated[Path | None, typer.Option()] = None,
     min_accuracy: Annotated[float, typer.Option(help="Fail if micro accuracy is lower")] = 0.0,
     show_misses: bool = False,
